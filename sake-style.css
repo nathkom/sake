@@ -148,7 +148,7 @@ body {
   outline: 0;
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 15.4px;
 }
 
 .theme-toggle {
@@ -263,7 +263,7 @@ html[data-theme="light"] .theme-thumb {
   padding: 0 14px;
   flex-shrink: 0;
   font-family: var(--sans);
-  font-size: 16px;
+  font-size: 17.6px;
   font-weight: 600;
   color: var(--ink-strong);
   white-space: nowrap;
@@ -277,7 +277,7 @@ html[data-theme="light"] .theme-thumb {
   border: 1px solid var(--border);
   border-bottom: none;
   border-radius: 10px 10px 0 0;
-  font-size: 16px;
+  font-size: 17.6px;
   font-weight: 500;
   letter-spacing: -0.005em;
   white-space: nowrap;
@@ -350,20 +350,20 @@ html[data-theme="light"] .theme-thumb {
 
 .topic-title {
   margin: 0 0 16px;
-  font-size: 28px;
+  font-size: 30.8px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--ink-strong);
 }
 
 .row:not(.focused) .topic-title {
-  font-size: 22px;
+  font-size: 24.2px;
   margin-bottom: 10px;
 }
 
 .topic-text p {
   margin: 0 0 14px;
-  font-size: 15px;
+  font-size: 16.5px;
   line-height: 1.65;
   color: var(--ink);
   max-width: 70ch;
@@ -374,7 +374,7 @@ html[data-theme="light"] .theme-thumb {
 }
 
 .row:not(.focused) .topic-text p {
-  font-size: 13.5px;
+  font-size: 14.9px;
   line-height: 1.55;
 }
 
@@ -401,7 +401,7 @@ html[data-theme="light"] .theme-thumb {
   padding: 3px 6px;
   color: var(--ink-dim);
   font-family: var(--sans);
-  font-size: 13.8px;
+  font-size: 15.2px;
   cursor: pointer;
   border-radius: 4px;
   transition: color 0.15s;
@@ -466,7 +466,7 @@ html[data-theme="light"] .theme-thumb {
 }
 
 .visual-caption {
-  font-size: 13px;
+  font-size: 14.3px;
   line-height: 1.5;
   color: var(--ink);
   text-align: center;
@@ -481,7 +481,7 @@ html[data-theme="light"] .theme-thumb {
   justify-content: center;
   gap: 12px;
   color: var(--ink-dim);
-  font-size: 13px;
+  font-size: 14.3px;
   font-family: var(--sans);
   text-align: center;
 }
