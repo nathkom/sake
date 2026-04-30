@@ -1,4 +1,3 @@
-// Sake cheat sheet — app logic (simplified: just tabs + paragraph text)
 (function () {
   const C = window.SAKE_CONTENT;
   const BODY = window.SAKE_BODY || {};
@@ -10,6 +9,7 @@
   const state = {
     focusedRow: "r1",
     active: { r1: 0, r2: 0 },
+    query: "",
   };
 
   let zoom = { scale: 1, tx: 0, ty: 0 };
@@ -25,7 +25,11 @@
     }
     const visual = document.getElementById("visual");
     if (visual) {
-      visual.style.cursor = isPanning ? "grabbing" : zoom.scale > 1 ? "grab" : "";
+      visual.style.cursor = isPanning
+        ? "grabbing"
+        : zoom.scale > 1
+          ? "grab"
+          : "";
     }
   }
 
@@ -34,18 +38,37 @@
     applyZoom();
   }
 
+  function getFilteredTopics(rowKey) {
+    const q = state.query.trim().toLowerCase();
+    const indexed = C[rowKey].topics.map((t, i) => ({ topic: t, origIdx: i }));
+    if (!q) return indexed;
+    return indexed.filter(({ topic }) => {
+      if (topic.title.toLowerCase().includes(q)) return true;
+      return (BODY[topic.id] || []).some((p) => p.toLowerCase().includes(q));
+    });
+  }
+
   function buildTabs(rowEl, rowKey) {
     const strip = rowEl.querySelector("[data-tabs]");
-    const data = C[rowKey];
+    const filtered = getFilteredTopics(rowKey);
     strip.innerHTML = "";
-    data.topics.forEach((t, i) => {
+
+    if (
+      filtered.length > 0 &&
+      !filtered.some(({ origIdx }) => origIdx === state.active[rowKey])
+    ) {
+      state.active[rowKey] = filtered[0].origIdx;
+    }
+
+    filtered.forEach(({ topic, origIdx }) => {
       const btn = document.createElement("button");
-      btn.className = "tab" + (i === state.active[rowKey] ? " active" : "");
-      btn.dataset.idx = i;
-      btn.textContent = t.title;
+      btn.className =
+        "tab" + (origIdx === state.active[rowKey] ? " active" : "");
+      btn.dataset.idx = origIdx;
+      btn.textContent = topic.title;
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        state.active[rowKey] = i;
+        state.active[rowKey] = origIdx;
         state.focusedRow = rowKey;
         updateVisual(true);
         render();
@@ -59,13 +82,18 @@
       label.textContent = rowEl.dataset.label;
       strip.appendChild(label);
     }
+
+    rowEl.style.display = filtered.length === 0 ? "none" : "";
   }
 
   function buildPanel(rowEl, rowKey) {
     const panel = rowEl.querySelector("[data-panel]");
-    const data = C[rowKey];
+    if (getFilteredTopics(rowKey).length === 0) {
+      panel.innerHTML = "";
+      return;
+    }
     const idx = state.active[rowKey];
-    const t = data.topics[idx];
+    const t = C[rowKey].topics[idx];
     const paragraphs = BODY[t.id] || ["[Add content for this topic.]"];
 
     panel.innerHTML = `
@@ -85,6 +113,13 @@
     });
   }
 
+  function applySolo() {
+    const rows = Array.from(document.querySelectorAll(".row"));
+    const visible = rows.filter((r) => r.style.display !== "none");
+    rows.forEach((r) => r.classList.remove("solo"));
+    if (visible.length === 1) visible[0].classList.add("solo");
+  }
+
   function render() {
     document.querySelectorAll(".row").forEach((r) => {
       const k = r.dataset.row;
@@ -92,9 +127,8 @@
       buildPanel(r, k);
     });
     applyFocus();
+    applySolo();
   }
-
-  // ── Visual panel ─────────────────────────────────────────────
 
   function getActiveTopic() {
     const k = state.focusedRow;
@@ -121,12 +155,16 @@
     }
 
     content.className = "visual-content";
-    content.innerHTML = imgs.map((src, i) => `
+    content.innerHTML = imgs
+      .map(
+        (src, i) => `
       <figure class="visual-figure">
         <img class="visual-img" src="${src}" alt="${topic.title}">
         ${captions[i] ? `<figcaption class="visual-caption">${captions[i]}</figcaption>` : ""}
       </figure>
-    `).join("");
+    `,
+      )
+      .join("");
   }
 
   function updateVisual(animate) {
@@ -163,11 +201,10 @@
     });
   }
 
-  // ── Bind ──────────────────────────────────────────────────────
-
   function bindPan() {
     const visual = document.getElementById("visual");
-    let lastX = 0, lastY = 0;
+    let lastX = 0,
+      lastY = 0;
 
     visual.addEventListener("mousedown", (e) => {
       if (zoom.scale <= 1) return;
@@ -196,22 +233,29 @@
 
   function bindZoom() {
     const visual = document.getElementById("visual");
-    visual.addEventListener("wheel", (e) => {
-      e.preventDefault();
-      const rect = visual.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
+    visual.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        const rect = visual.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
 
-      const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-      const newScale = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom.scale * factor));
-      const ratio = newScale / zoom.scale;
+        const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+        const newScale = Math.min(
+          ZOOM_MAX,
+          Math.max(ZOOM_MIN, zoom.scale * factor),
+        );
+        const ratio = newScale / zoom.scale;
 
-      zoom.tx = mx + (zoom.tx - mx) * ratio;
-      zoom.ty = my + (zoom.ty - my) * ratio;
-      zoom.scale = newScale;
+        zoom.tx = mx + (zoom.tx - mx) * ratio;
+        zoom.ty = my + (zoom.ty - my) * ratio;
+        zoom.scale = newScale;
 
-      applyZoom();
-    }, { passive: false });
+        applyZoom();
+      },
+      { passive: false },
+    );
   }
 
   function bind() {
@@ -229,19 +273,46 @@
     document.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT") return;
       const k = state.focusedRow;
-      const total = C[k].topics.length;
+      const filtered = getFilteredTopics(k);
+      if (filtered.length === 0) return;
+      const pos = filtered.findIndex(
+        ({ origIdx }) => origIdx === state.active[k],
+      );
       if (e.key === "ArrowRight") {
-        state.active[k] = (state.active[k] + 1) % total;
+        state.active[k] = filtered[(pos + 1) % filtered.length].origIdx;
         render();
         updateVisual(true);
       } else if (e.key === "ArrowLeft") {
-        state.active[k] = (state.active[k] - 1 + total) % total;
+        state.active[k] =
+          filtered[(pos - 1 + filtered.length) % filtered.length].origIdx;
         render();
         updateVisual(true);
       } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         state.focusedRow = state.focusedRow === "r1" ? "r2" : "r1";
         applyFocus();
         updateVisual(true);
+      }
+    });
+  }
+
+  function bindSearch() {
+    const input = document.getElementById("search-input");
+    if (!input) return;
+    input.addEventListener("input", () => {
+      state.query = input.value;
+      render();
+      const filtered = getFilteredTopics(state.focusedRow);
+      if (filtered.length > 0) {
+        updateVisual(false);
+      } else {
+        const visibleRow = Object.keys(C).find(
+          (k) => getFilteredTopics(k).length > 0,
+        );
+        if (visibleRow) {
+          state.focusedRow = visibleRow;
+          applyFocus();
+          updateVisual(false);
+        }
       }
     });
   }
@@ -254,7 +325,6 @@
     bindZoom();
     bindPan();
     bindTheme();
+    bindSearch();
   });
-
-  window.SAKE_APP = { state, render };
 })();

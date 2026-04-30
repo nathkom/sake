@@ -186,7 +186,9 @@ body {
   height: 13px;
   background: var(--ink-dim);
   border-radius: 50%;
-  transition: transform 0.2s, background 0.2s;
+  transition:
+    transform 0.2s,
+    background 0.2s;
 }
 
 html[data-theme="light"] .theme-track {
@@ -223,6 +225,13 @@ html[data-theme="light"] .theme-thumb {
 
 .row:not(.focused) {
   opacity: 0.92;
+}
+
+.row.solo,
+.row.solo.focused {
+  flex: 1;
+  height: auto !important;
+  min-height: 0;
 }
 
 /* Tabs */
@@ -429,8 +438,13 @@ html[data-theme="light"] .theme-thumb {
   scrollbar-color: var(--border-2) transparent;
 }
 
-.visual-content::-webkit-scrollbar { width: 4px; }
-.visual-content::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
+.visual-content::-webkit-scrollbar {
+  width: 4px;
+}
+.visual-content::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 4px;
+}
 
 .visual-figure {
   display: flex;
